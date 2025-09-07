@@ -9,7 +9,7 @@ def run_pydriller(repo_path):
     repo_name = repo_path.split("/")[-1]
     print(f"Analyzing repository: {repo_name}")
     
-    df = pd.DataFrame(columns=["old_file path", "new_file path", "commit SHA", "parent commit SHA", "commit message", "diff_myers", "diff_hist", "Discrepancy"])
+    df = pd.DataFrame(columns=["old_file path", "new_file path", "commit SHA", "parent commit SHA", "commit message", "diff_myers", "diff_hist", "Discrepancy1", "Discrepancy2"])
 
     repo_myers_diff = Repository(repo_path, skip_whitespaces=True)
     repo_hist_diff = Repository(repo_path, histogram_diff=True, skip_whitespaces=True)
@@ -26,9 +26,9 @@ def run_pydriller(repo_path):
             if file_myers.change_type.name != 'MODIFY':
                 continue
 
-            discrepancy1 = ([line for _, line in file_myers.diff_parsed['added']] != [line for _, line in file_hist.diff_parsed['added']]) or \
+            discrepancy1 = file_myers.diff != file_hist.diff
+            discrepancy2 = ([line for _, line in file_myers.diff_parsed['added']] != [line for _, line in file_hist.diff_parsed['added']]) or \
                             ([line for _, line in file_myers.diff_parsed['deleted']] != [line for _, line in file_hist.diff_parsed['deleted']])
-            discrepancy2 = file_myers.diff != file_hist.diff
 
             df.loc[len(df)] = {
                 "old_file path": file_myers.old_path,
@@ -38,7 +38,8 @@ def run_pydriller(repo_path):
                 "commit message": commit_myers.msg,
                 "diff_myers": file_myers.diff,
                 "diff_hist": file_hist.diff,
-                "Discrepancy": discrepancy1
+                "Discrepancy1": discrepancy1,
+                "Discrepancy2": discrepancy2
             }
 
     return df
